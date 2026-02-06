@@ -11,4 +11,6 @@ public interface UserServiceInter {
     Optional<UserEntity> findByUsername(String username);
     List<UserEntity> findAllUsers();
     void disableUser(Long id);
+    UserEntity enableUser(Long id);
+    UserEntity updateUserRole(Long id, Role role);
 }

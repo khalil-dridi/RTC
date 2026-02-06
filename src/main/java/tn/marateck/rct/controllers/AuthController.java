@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import tn.marateck.rct.dto.AuthResponseDto;
 import tn.marateck.rct.dto.LoginDto;
 import tn.marateck.rct.dto.UserCreateDto;
+import tn.marateck.rct.models.Role;
 import tn.marateck.rct.models.UserEntity;
 import tn.marateck.rct.services.UserServiceInter;
 import tn.marateck.rct.security.JwtUtils;
@@ -69,5 +70,27 @@ public class AuthController {
     public ResponseEntity<?> disableUser(@PathVariable Long id) {
         userService.disableUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/users/{id}/enable")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<?> enableUser(@PathVariable Long id) {
+        try {
+            UserEntity user = userService.enableUser(id);
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/users/{id}/role")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestParam("role") Role role) {
+        try {
+            UserEntity user = userService.updateUserRole(id, role);
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

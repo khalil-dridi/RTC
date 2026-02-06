@@ -47,4 +47,29 @@ public class UserServiceImpl implements UserServiceInter {
             userRepo.save(u);
         });
     }
+
+    @Override
+    public UserEntity enableUser(Long id) {
+        UserEntity user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+        if (!user.isEnabled()) {
+            user.setEnabled(true);
+            userRepo.save(user);
+        }
+        return user;
+    }
+
+    @Override
+    public UserEntity updateUserRole(Long id, Role role) {
+        if (role == null) {
+            throw new IllegalArgumentException("Role must not be null");
+        }
+        UserEntity user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+        if (user.getRole() != role) {
+            user.setRole(role);
+            userRepo.save(user);
+        }
+        return user;
+    }
 }
