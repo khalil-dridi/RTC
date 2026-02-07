@@ -24,6 +24,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
+        final String method = request.getMethod();
+        final String uri = request.getRequestURI();
+
+        System.out.println("[JWT Filter] Request: " + method + " " + uri + "; Authorization header present=" + (authHeader != null));
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -32,18 +36,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        // simple logging to help debug
-        System.out.println("Authorization header present. Token length=" + (token == null ? 0 : token.length()));
+        // detailed logging to help debug
+        System.out.println("[JWT Filter] Token length=" + (token == null ? 0 : token.length()));
 
         if (!jwtUtils.validateToken(token)) {
             // If token is present but invalid, return 401 immediately
-            System.out.println("Invalid JWT token provided");
+            System.out.println("[JWT Filter] Invalid JWT token provided for request " + method + " " + uri);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Invalid or expired JWT token");
             return;
         }
 
         String username = jwtUtils.extractUsername(token);
+        System.out.println("[JWT Filter] Token valid, username=" + username + " for request " + method + " " + uri);
+
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -51,6 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
+            System.out.println("[JWT Filter] SecurityContext set for user=" + username);
         }
 
         filterChain.doFilter(request, response);
